@@ -1,0 +1,99 @@
+/* General Styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Forum List Styles */
+.forum-list .forum-item {
+    transition: background-color 0.2s;
+}
+
+.forum-list .forum-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Thread List Styles */
+.thread-list .thread-item {
+    border-left: 4px solid transparent;
+    transition: border-left-color 0.2s;
+}
+
+.thread-list .thread-item:hover {
+    border-left-color: #007bff;
+}
+
+.thread-list .thread-item.sticky {
+    background-color: rgba(0, 123, 255, 0.05);
+    border-left-color: #28a745;
+}
+
+/* Post Styles */
+.post {
+    margin-bottom: 1.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+
+.post-header {
+    background-color: rgba(0, 0, 0, 0.03);
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.post-content {
+    padding: 1rem;
+}
+
+.post-footer {
+    background-color: rgba(0, 0, 0, 0.03);
+    padding: 0.75rem;
+    border-top: 1px solid #dee2e6;
+}
+
+/* User Profile Styles */
+.profile-header {
+    background-color: #f8f9fa;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.profile-avatar {
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Tag Styles */
+.tag {
+    display: inline-block;
+    padding: 0.25em 0.5em;
+    font-size: 0.875em;
+    font-weight: 600;
+    border-radius: 0.25rem;
+    background-color: #e9ecef;
+    color: #495057;
+    margin: 0.25rem;
+}
+
+.tag:hover {
+    background-color: #dee2e6;
+    text-decoration: none;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .profile-header {
+        text-align: center;
+    }
+    
+    .profile-avatar {
+        margin-bottom: 1rem;
+    }
+} 

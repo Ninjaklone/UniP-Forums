@@ -1,0 +1,47 @@
+
+
+<div class="container mt-4">
+    <div class="jumbotron bg-light p-5 rounded-3 mb-4">
+        <h1 class="display-4">Welcome to University Forums</h1>
+        <p class="lead">Join academic discussions, share knowledge, and connect with fellow students and faculty.</p>
+        <hr class="my-4">
+        <p>Explore our forums or start a new discussion today.</p>
+        <a class="btn btn-primary btn-lg" href="/forums" role="button">Browse Forums</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Recent Discussions</h2>
+            <div class="list-group">
+                <% if (locals.recentThreads && recentThreads.length > 0) { %>
+                    <% recentThreads.forEach(thread => { %>
+                        <a href="/threads/<%= thread.thread_id %>" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1"><%= thread.title %></h5>
+                                <small><%= new Date(thread.created_at).toLocaleDateString() %></small>
+                            </div>
+                            <p class="mb-1">Posted by <%= thread.username %></p>
+                        </a>
+                    <% }) %>
+                <% } else { %>
+                    <p class="text-muted">No recent discussions found.</p>
+                <% } %>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title h5 mb-0">Forum Statistics</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li>Total Users: <%= locals.stats?.userCount || 0 %></li>
+                        <li>Total Threads: <%= locals.stats?.threadCount || 0 %></li>
+                        <li>Total Posts: <%= locals.stats?.postCount || 0 %></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
