@@ -1,0 +1,120 @@
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-2"><%= forum.name %></h1>
+            <p class="text-muted mb-0"><%= forum.description %></p>
+        </div>
+        <% if (locals.user) { %>
+            <a href="/threads/new?forum=<%= forum.forum_id %>" class="btn btn-primary">
+                Start New Discussion
+            </a>
+        <% } %>
+    </div>
+
+    <div class="card">
+        <div class="list-group list-group-flush">
+            <% if (locals.threads && threads.length > 0) { %>
+                <% threads.forEach(thread => { %>
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">
+                                    <% if (thread.is_sticky) { %>
+                                        <span class="badge bg-primary me-1">Sticky</span>
+                                    <% } %>
+                                    <% if (thread.is_closed) { %>
+                                        <span class="badge bg-secondary me-1">Closed</span>
+                                    <% } %>
+                                    <a href="/threads/<%= thread.thread_id %>" class="text-decoration-none text-dark">
+                                        <%= thread.title %>
+                                    </a>
+                                </h5>
+                                <p class="mb-1 text-muted">
+                                    Posted by <%= thread.author_name %>
+                                    • <%= new Date(thread.created_at).toLocaleDateString() %>
+                                </p>
+                                <% if (thread.tags && thread.tags.length > 0 && thread.tags[0] !== null) { %>
+                                    <div class="mt-1">
+                                        <% thread.tags.forEach(tag => { %>
+                                            <span class="badge bg-light text-dark me-1"><%= tag %></span>
+                                        <% }); %>
+                                    </div>
+                                <% } %>
+                            </div>
+                            <div class="text-end text-muted small">
+                                <div><%= thread.reply_count %> replies</div>
+                                <% if (thread.last_reply_at) { %>
+                                    <div>Last reply: <%= new Date(thread.last_reply_at).toLocaleDateString() %></div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="list-group-item text-center text-muted py-4">
+                    No discussions found in this forum.
+                    <% if (locals.user) { %>
+                        <br>
+                        <a href="/threads/new?forum=<%= forum.forum_id %>" class="btn btn-link">Start the first discussion</a>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <% if (locals.totalPages > 1) { %>
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                    <a class="page-link" href="/forums/<%= forum.forum_id %>?page=<%= currentPage - 1 %>">Previous</a>
+                </li>
+                <% for(let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                        <a class="page-link" href="/forums/<%= forum.forum_id %>?page=<%= i %>"><%= i %></a>
+                    </li>
+                <% } %>
+                <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                    <a class="page-link" href="/forums/<%= forum.forum_id %>?page=<%= currentPage + 1 %>">Next</a>
+                </li>
+            </ul>
+        </nav>
+    <% } %>
+
+    <% if (locals.user?.is_admin) { %>
+        <div class="mt-4">
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editForumModal">
+                Edit Forum
+            </button>
+        </div>
+
+        <!-- Edit Forum Modal -->
+        <div class="modal fade" id="editForumModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="/forums/<%= forum.forum_id %>" method="POST">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Forum</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="forumName" class="form-label">Forum Name</label>
+                                <input type="text" class="form-control" id="forumName" name="name" 
+                                       value="<%= forum.name %>" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="forumDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="forumDescription" name="description" 
+                                          rows="3" required><%= forum.description %></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</div> 
