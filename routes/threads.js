@@ -2,14 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Thread = require('../models/thread');
 const Post = require('../models/post');
-
-// Middleware to check if user is logged in
-const isAuthenticated = (req, res, next) => {
-    if (!req.session.user) {
-        return res.redirect('/auth/login');
-    }
-    next();
-};
+const { isAuthenticated } = require('../middleware/auth');
+const Forum = require('../models/forum');
 
 // Recent threads
 router.get('/recent', async (req, res, next) => {
@@ -18,7 +12,7 @@ router.get('/recent', async (req, res, next) => {
         const limit = 20;
         const offset = (page - 1) * limit;
 
-        const threads = await Thread.getRecent({ page, limit });
+        const threads = await Thread.getByRecent({ page, limit });
         const totalThreads = await Thread.getTotalCount();
         const totalPages = Math.ceil(totalThreads / limit);
 
@@ -39,6 +33,7 @@ router.get('/new', isAuthenticated, async (req, res, next) => {
         const forumId = req.query.forum;
         if (!forumId) {
             return res.status(400).render('error', {
+                title: 'Bad Request',
                 error: {
                     status: 400,
                     message: 'Forum ID is required'
@@ -46,9 +41,20 @@ router.get('/new', isAuthenticated, async (req, res, next) => {
             });
         }
 
+        const forum = await Forum.getById(parseInt(forumId));
+        if (!forum) {
+            return res.status(404).render('error', {
+                title: 'Not Found',
+                error: {
+                    status: 404,
+                    message: 'Forum not found'
+                }
+            });
+        }
+
         res.render('thread-form', {
             title: 'Start New Discussion',
-            forumId
+            forum
         });
     } catch (error) {
         next(error);
@@ -85,6 +91,7 @@ router.get('/:id', async (req, res, next) => {
         const thread = await Thread.getById(threadId);
         if (!thread) {
             return res.status(404).render('error', {
+                title: 'Not Found',
                 error: {
                     status: 404,
                     message: 'Thread not found'

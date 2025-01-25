@@ -8,7 +8,18 @@ const pool = new Pool({
     port: process.env.DB_PORT || 5432,
 });
 
-module.exports = {
-    query: (text, params) => pool.query(text, params),
-    pool
-}; 
+// Test the database connection
+pool.query('SELECT NOW()', (err, res) => {
+    if (err) {
+        console.error('Database connection error:', err);
+    } else {
+        console.log('Database connected successfully');
+    }
+});
+
+// Add error handler
+pool.on('error', (err) => {
+    console.error('Unexpected database error:', err);
+});
+
+module.exports = pool; 

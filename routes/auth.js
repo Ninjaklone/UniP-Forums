@@ -1,26 +1,59 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
-const bcrypt = require('bcrypt');
+const { isGuest } = require('../middleware/auth');
 
 // Login page
-router.get('/login', (req, res) => {
-    if (req.session.user) {
-        return res.redirect('/');
-    }
-    res.render('login', { title: 'Login' });
+router.get('/login', isGuest, (req, res) => {
+    res.render('login', { 
+        title: 'Login',
+        extraScripts: true // Enable client-side validation
+    });
 });
 
 // Login process
-router.post('/login', async (req, res) => {
+router.post('/login', isGuest, async (req, res) => {
     try {
         const { email, password, rememberMe } = req.body;
+
+        // Basic validation
+        if (!email || !password) {
+            return res.render('login', {
+                title: 'Login',
+                error: 'Please fill in all fields',
+                email,
+                extraScripts: true
+            });
+        }
+
+        // Email format validation
+        if (!email.includes('@')) {
+            return res.render('login', {
+                title: 'Login',
+                error: 'Please enter a valid email address',
+                email,
+                extraScripts: true
+            });
+        }
+
         const user = await User.findByEmail(email);
 
         if (!user || !(await User.validatePassword(password, user.password_hash))) {
             return res.render('login', {
                 title: 'Login',
-                error: 'Invalid email or password'
+                error: 'Invalid email or password',
+                email,
+                extraScripts: true
+            });
+        }
+
+        // Check if user is active
+        if (!user.is_active) {
+            return res.render('login', {
+                title: 'Login',
+                error: 'Your account has been deactivated. Please contact support.',
+                email,
+                extraScripts: true
             });
         }
 
@@ -39,26 +72,28 @@ router.post('/login', async (req, res) => {
             req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
         }
 
-        res.redirect('/');
+        // Redirect to the originally requested URL or home
+        const returnTo = req.session.returnTo || '/';
+        delete req.session.returnTo;
+        res.redirect(returnTo);
     } catch (error) {
         console.error('Login error:', error);
         res.render('login', {
             title: 'Login',
-            error: 'An error occurred during login'
+            error: 'An error occurred during login. Please try again.',
+            email: req.body.email,
+            extraScripts: true
         });
     }
 });
 
 // Register page
-router.get('/register', (req, res) => {
-    if (req.session.user) {
-        return res.redirect('/');
-    }
+router.get('/register', isGuest, (req, res) => {
     res.render('register', { title: 'Register' });
 });
 
 // Register process
-router.post('/register', async (req, res) => {
+router.post('/register', isGuest, async (req, res) => {
     try {
         const { username, email, password, confirmPassword } = req.body;
 
@@ -66,7 +101,9 @@ router.post('/register', async (req, res) => {
         if (password !== confirmPassword) {
             return res.render('register', {
                 title: 'Register',
-                error: 'Passwords do not match'
+                error: 'Passwords do not match',
+                username,
+                email
             });
         }
 
@@ -75,7 +112,8 @@ router.post('/register', async (req, res) => {
         if (existingUser) {
             return res.render('register', {
                 title: 'Register',
-                error: 'Email already registered'
+                error: 'Email already registered',
+                username
             });
         }
 
@@ -95,7 +133,9 @@ router.post('/register', async (req, res) => {
         console.error('Registration error:', error);
         res.render('register', {
             title: 'Register',
-            error: 'An error occurred during registration'
+            error: 'An error occurred during registration',
+            username: req.body.username,
+            email: req.body.email
         });
     }
 });
