@@ -34,6 +34,12 @@ class User {
     static async validatePassword(password, hashedPassword) {
         return bcrypt.compare(password, hashedPassword);
     }
+
+    static async getTotalCount() {
+        const query = 'SELECT COUNT(*) as count FROM users';
+        const result = await db.query(query);
+        return parseInt(result.rows[0].count);
+    }
 }
 
 module.exports = User; 

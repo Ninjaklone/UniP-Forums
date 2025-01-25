@@ -58,6 +58,12 @@ class Post {
         const result = await db.query(query, [threadId]);
         return parseInt(result.rows[0].count);
     }
+
+    static async getTotalCount() {
+        const query = 'SELECT COUNT(*) as count FROM posts';
+        const result = await db.query(query);
+        return parseInt(result.rows[0].count);
+    }
 }
 
 module.exports = Post; 

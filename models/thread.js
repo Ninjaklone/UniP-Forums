@@ -108,6 +108,30 @@ class Thread {
         const result = await db.query(query, [title, is_sticky, is_closed, threadId]);
         return result.rows[0];
     }
+
+    static async getByRecent({ limit = 5 } = {}) {
+        const query = `
+            SELECT t.thread_id, t.title, t.created_at,
+                   u.username,
+                   f.name as forum_name,
+                   COUNT(p.post_id) as reply_count
+            FROM threads t
+            JOIN users u ON t.user_id = u.user_id
+            JOIN forums f ON t.forum_id = f.forum_id
+            LEFT JOIN posts p ON t.thread_id = p.thread_id
+            GROUP BY t.thread_id, u.username, f.name
+            ORDER BY t.created_at DESC
+            LIMIT $1
+        `;
+        const result = await db.query(query, [limit]);
+        return result.rows;
+    }
+
+    static async getTotalCount() {
+        const query = 'SELECT COUNT(*) as count FROM threads';
+        const result = await db.query(query);
+        return parseInt(result.rows[0].count);
+    }
 }
 
 module.exports = Thread; 
