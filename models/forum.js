@@ -51,6 +51,39 @@ class Forum {
         const result = await db.query(query, [name, description, forumId]);
         return result.rows[0];
     }
+
+    static async delete(forumId) {
+        const client = await db.connect();
+        
+        try {
+            await client.query('BEGIN');
+            
+            // Get all thread IDs in this forum
+            const threadResult = await client.query('SELECT thread_id FROM threads WHERE forum_id = $1', [forumId]);
+            const threadIds = threadResult.rows.map(row => row.thread_id);
+            
+            if (threadIds.length > 0) {
+                // Delete all posts in these threads
+                await client.query('DELETE FROM posts WHERE thread_id = ANY($1)', [threadIds]);
+                
+                // Delete thread-tag associations
+                await client.query('DELETE FROM thread_tags WHERE thread_id = ANY($1)', [threadIds]);
+                
+                // Delete the threads
+                await client.query('DELETE FROM threads WHERE forum_id = $1', [forumId]);
+            }
+            
+            // Finally, delete the forum
+            await client.query('DELETE FROM forums WHERE forum_id = $1', [forumId]);
+            
+            await client.query('COMMIT');
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
 }
 
 module.exports = Forum; 

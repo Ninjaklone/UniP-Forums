@@ -15,7 +15,12 @@
 
     <%- include('../partials/footer') %>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <%- typeof extraScripts !== 'undefined' ? extraScripts : '' %>
+    <%- typeof scripts !== 'undefined' ? scripts : '' %>
+    <% if (locals.user) { %>
+        <script src="/js/thread.js"></script>
+        <script src="/js/forum.js"></script>
+    <% } %>
 </body>
 </html> 

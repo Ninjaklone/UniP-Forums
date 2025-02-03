@@ -134,4 +134,73 @@ router.post('/:id/reply', isAuthenticated, async (req, res, next) => {
     }
 });
 
+// Delete thread
+router.delete('/:id', isAuthenticated, async (req, res, next) => {
+    try {
+        const threadId = parseInt(req.params.id);
+        const userId = req.session.user.id;
+
+        // Get the thread to check ownership
+        const thread = await Thread.getById(threadId);
+        if (!thread) {
+            return res.status(404).json({ error: 'Thread not found' });
+        }
+
+        // Check if user owns the thread or is admin
+        if (thread.user_id !== userId && !req.session.user.is_admin) {
+            return res.status(403).json({ error: 'Not authorized to delete this thread' });
+        }
+
+        // Delete the thread
+        await Thread.delete(threadId);
+        res.json({ message: 'Thread deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Toggle sticky status
+router.post('/:id/sticky', isAuthenticated, async (req, res, next) => {
+    try {
+        const threadId = parseInt(req.params.id);
+        
+        // Only admins can toggle sticky status
+        if (!req.session.user.is_admin) {
+            return res.status(403).json({ error: 'Not authorized to modify thread status' });
+        }
+
+        const thread = await Thread.getById(threadId);
+        if (!thread) {
+            return res.status(404).json({ error: 'Thread not found' });
+        }
+
+        await Thread.update(threadId, { is_sticky: !thread.is_sticky });
+        res.json({ message: 'Thread sticky status updated successfully' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Toggle closed status
+router.post('/:id/close', isAuthenticated, async (req, res, next) => {
+    try {
+        const threadId = parseInt(req.params.id);
+        
+        // Only admins can toggle closed status
+        if (!req.session.user.is_admin) {
+            return res.status(403).json({ error: 'Not authorized to modify thread status' });
+        }
+
+        const thread = await Thread.getById(threadId);
+        if (!thread) {
+            return res.status(404).json({ error: 'Thread not found' });
+        }
+
+        await Thread.update(threadId, { is_closed: !thread.is_closed });
+        res.json({ message: 'Thread closed status updated successfully' });
+    } catch (error) {
+        next(error);
+    }
+});
+
 module.exports = router; 

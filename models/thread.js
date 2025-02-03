@@ -2,7 +2,7 @@ const db = require('../config/database');
 
 class Thread {
     static async create({ forumId, userId, title, content, tags = [] }) {
-        const client = await db.pool.connect();
+        const client = await db.connect();
         
         try {
             await client.query('BEGIN');
@@ -125,6 +125,30 @@ class Thread {
         `;
         const result = await db.query(query, [limit]);
         return result.rows;
+    }
+
+    static async delete(threadId) {
+        const client = await db.connect();
+        
+        try {
+            await client.query('BEGIN');
+            
+            // Delete all posts in the thread
+            await client.query('DELETE FROM posts WHERE thread_id = $1', [threadId]);
+            
+            // Delete thread-tag associations
+            await client.query('DELETE FROM thread_tags WHERE thread_id = $1', [threadId]);
+            
+            // Delete the thread
+            await client.query('DELETE FROM threads WHERE thread_id = $1', [threadId]);
+            
+            await client.query('COMMIT');
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
     }
 
     static async getTotalCount() {

@@ -75,4 +75,23 @@ router.post('/:id', isAdmin, async (req, res, next) => {
     }
 });
 
+// Delete forum (admin only)
+router.delete('/:id', isAdmin, async (req, res, next) => {
+    try {
+        const forumId = parseInt(req.params.id);
+        
+        // Check if forum exists
+        const forum = await Forum.getById(forumId);
+        if (!forum) {
+            return res.status(404).json({ error: 'Forum not found' });
+        }
+
+        // Delete the forum and all its content
+        await Forum.delete(forumId);
+        res.json({ message: 'Forum deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+});
+
 module.exports = router; 

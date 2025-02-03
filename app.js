@@ -37,10 +37,13 @@ app.use(helmet({
         },
     },
 }));
+
+// Static files middleware - place this AFTER helmet but BEFORE routes
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Session configuration
 app.use(session({
@@ -49,7 +52,7 @@ app.use(session({
         tableName: 'session',
         createTableIfMissing: true
     }),
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -71,6 +74,7 @@ app.use('/', require('./routes/main'));
 app.use('/auth', require('./routes/auth'));
 app.use('/forums', require('./routes/forums'));
 app.use('/threads', require('./routes/threads'));
+app.use('/posts', require('./routes/posts'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
