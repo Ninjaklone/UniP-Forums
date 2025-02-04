@@ -75,6 +75,7 @@ app.use('/auth', require('./routes/auth'));
 app.use('/forums', require('./routes/forums'));
 app.use('/threads', require('./routes/threads'));
 app.use('/posts', require('./routes/posts'));
+app.use('/admin', require('./routes/admin'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -64,6 +64,41 @@ class Post {
         const result = await db.query(query);
         return parseInt(result.rows[0].count);
     }
+
+    static async getCountByForum(forumId) {
+        const query = `
+            SELECT COUNT(p.*) as count 
+            FROM posts p 
+            JOIN threads t ON p.thread_id = t.thread_id 
+            WHERE t.forum_id = $1
+        `;
+        const result = await db.query(query, [forumId]);
+        return parseInt(result.rows[0].count);
+    }
+
+    static async getReports({ page = 1, limit = 20, type = 'reported' }) {
+        const offset = (page - 1) * limit;
+        const query = `
+            SELECT r.*, p.content as post_content, 
+                   u.username as reporter_name,
+                   pu.username as poster_name
+            FROM reports r
+            JOIN posts p ON r.post_id = p.post_id
+            JOIN users u ON r.reporter_id = u.user_id
+            JOIN users pu ON p.user_id = pu.user_id
+            WHERE r.status = $1
+            ORDER BY r.created_at DESC
+            LIMIT $2 OFFSET $3
+        `;
+        const result = await db.query(query, [type, limit, offset]);
+        return result.rows;
+    }
+
+    static async getTotalReports({ type = 'reported' }) {
+        const query = 'SELECT COUNT(*) as count FROM reports WHERE status = $1';
+        const result = await db.query(query, [type]);
+        return parseInt(result.rows[0].count);
+    }
 }
 
 module.exports = Post; 

@@ -84,6 +84,21 @@ class Forum {
             client.release();
         }
     }
+
+    static async getLastActivity(forumId) {
+        const query = `
+            SELECT GREATEST(
+                COALESCE(MAX(t.created_at), '1970-01-01'::timestamp),
+                COALESCE(MAX(p.created_at), '1970-01-01'::timestamp)
+            ) as last_activity
+            FROM forums f
+            LEFT JOIN threads t ON f.forum_id = t.forum_id
+            LEFT JOIN posts p ON t.thread_id = p.thread_id
+            WHERE f.forum_id = $1
+        `;
+        const result = await db.query(query, [forumId]);
+        return result.rows[0]?.last_activity;
+    }
 }
 
 module.exports = Forum; 

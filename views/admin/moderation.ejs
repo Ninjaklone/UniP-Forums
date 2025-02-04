@@ -1,0 +1,348 @@
+<%- contentFor('body') %>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin">
+                            <i class="bi bi-speedometer2"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/users">
+                            <i class="bi bi-people"></i>
+                            User Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/forums">
+                            <i class="bi bi-layout-text-window"></i>
+                            Forum Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active text-white" href="/admin/moderation">
+                            <i class="bi bi-shield-check"></i>
+                            Content Moderation
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/settings">
+                            <i class="bi bi-gear"></i>
+                            System Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/logs">
+                            <i class="bi bi-journal-text"></i>
+                            Logs & Activity
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Content Moderation</h1>
+            </div>
+
+            <!-- Filter Options -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <select class="form-select" id="reportType" onchange="filterReports()">
+                        <option value="reported" <%= type === 'reported' ? 'selected' : '' %>>Pending Reports</option>
+                        <option value="resolved" <%= type === 'resolved' ? 'selected' : '' %>>Resolved Reports</option>
+                        <option value="dismissed" <%= type === 'dismissed' ? 'selected' : '' %>>Dismissed Reports</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Reports List -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Reported Content</th>
+                                    <th>Reporter</th>
+                                    <th>Reason</th>
+                                    <th>Date Reported</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (reports && reports.length > 0) { %>
+                                    <% reports.forEach(report => { %>
+                                        <tr>
+                                            <td>
+                                                <div class="reported-content">
+                                                    <strong>Posted by: <%= report.poster_name %></strong>
+                                                    <div class="mt-2 text-muted">
+                                                        <%= report.post_content.length > 100 ? 
+                                                            report.post_content.substring(0, 100) + '...' : 
+                                                            report.post_content %>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><%= report.reporter_name %></td>
+                                            <td><%= report.reason %></td>
+                                            <td><%= new Date(report.created_at).toLocaleString() %></td>
+                                            <td>
+                                                <span class="badge bg-<%= 
+                                                    report.status === 'reported' ? 'warning' : 
+                                                    report.status === 'resolved' ? 'success' : 
+                                                    'secondary' %>">
+                                                    <%= report.status %>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <% if (report.status === 'reported') { %>
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-sm btn-success" 
+                                                                onclick="resolveReport('<%= report.report_id %>')">
+                                                            <i class="bi bi-check-lg"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-secondary" 
+                                                                onclick="dismissReport('<%= report.report_id %>')">
+                                                            <i class="bi bi-x-lg"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                                onclick="deletePost('<%= report.post_id %>', '<%= report.report_id %>')">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                <% } else { %>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                                            onclick="viewDetails('<%= report.report_id %>')">
+                                                        View Details
+                                                    </button>
+                                                <% } %>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="6" class="text-center">No reports found</td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <% if (totalPages > 1) { %>
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                            <a class="page-link" href="/admin/moderation?page=<%= currentPage - 1 %>&type=<%= type %>">Previous</a>
+                        </li>
+                        <% for(let i = 1; i <= totalPages; i++) { %>
+                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                <a class="page-link" href="/admin/moderation?page=<%= i %>&type=<%= type %>"><%= i %></a>
+                            </li>
+                        <% } %>
+                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                            <a class="page-link" href="/admin/moderation?page=<%= currentPage + 1 %>&type=<%= type %>">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            <% } %>
+        </main>
+    </div>
+</div>
+
+<!-- Resolution Modal -->
+<div class="modal fade" id="resolutionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resolve Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="reportId">
+                <div class="mb-3">
+                    <label for="resolution" class="form-label">Resolution Notes</label>
+                    <textarea class="form-control" id="resolution" rows="3" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitResolution()">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Report Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reportDetails"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- contentFor('scripts') %>
+<script>
+function filterReports() {
+    const type = document.getElementById('reportType').value;
+    window.location.href = `/admin/moderation?type=${type}`;
+}
+
+function resolveReport(reportId) {
+    document.getElementById('reportId').value = reportId;
+    new bootstrap.Modal(document.getElementById('resolutionModal')).show();
+}
+
+async function submitResolution() {
+    const reportId = document.getElementById('reportId').value;
+    const resolution = document.getElementById('resolution').value;
+
+    try {
+        const response = await fetch(`/admin/reports/${reportId}/resolve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'resolve',
+                resolution 
+            })
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'Failed to resolve report');
+        }
+
+        location.reload();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function dismissReport(reportId) {
+    if (!confirm('Are you sure you want to dismiss this report?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/admin/reports/${reportId}/resolve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'dismiss',
+                resolution: 'Report dismissed by moderator' 
+            })
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'Failed to dismiss report');
+        }
+
+        location.reload();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function deletePost(postId, reportId) {
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        // Delete the post
+        const deleteResponse = await fetch(`/posts/${postId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!deleteResponse.ok) {
+            const data = await deleteResponse.json();
+            throw new Error(data.error || 'Failed to delete post');
+        }
+
+        // Resolve the report
+        const resolveResponse = await fetch(`/admin/reports/${reportId}/resolve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'resolve',
+                resolution: 'Post deleted by moderator' 
+            })
+        });
+
+        if (!resolveResponse.ok) {
+            const data = await resolveResponse.json();
+            throw new Error(data.error || 'Failed to resolve report');
+        }
+
+        location.reload();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function viewDetails(reportId) {
+    try {
+        const response = await fetch(`/admin/reports/${reportId}`);
+        if (!response.ok) throw new Error('Failed to fetch report details');
+        
+        const report = await response.json();
+        const detailsHtml = `
+            <dl class="row">
+                <dt class="col-sm-4">Status</dt>
+                <dd class="col-sm-8">${report.status}</dd>
+                
+                <dt class="col-sm-4">Reported Content</dt>
+                <dd class="col-sm-8">${report.post_content}</dd>
+                
+                <dt class="col-sm-4">Posted By</dt>
+                <dd class="col-sm-8">${report.poster_name}</dd>
+                
+                <dt class="col-sm-4">Reported By</dt>
+                <dd class="col-sm-8">${report.reporter_name}</dd>
+                
+                <dt class="col-sm-4">Reason</dt>
+                <dd class="col-sm-8">${report.reason}</dd>
+                
+                <dt class="col-sm-4">Date Reported</dt>
+                <dd class="col-sm-8">${new Date(report.created_at).toLocaleString()}</dd>
+                
+                ${report.resolved_at ? `
+                    <dt class="col-sm-4">Resolution</dt>
+                    <dd class="col-sm-8">${report.resolution}</dd>
+                    
+                    <dt class="col-sm-4">Resolved By</dt>
+                    <dd class="col-sm-8">${report.resolver_name}</dd>
+                    
+                    <dt class="col-sm-4">Resolved At</dt>
+                    <dd class="col-sm-8">${new Date(report.resolved_at).toLocaleString()}</dd>
+                ` : ''}
+            </dl>
+        `;
+        
+        document.getElementById('reportDetails').innerHTML = detailsHtml;
+        new bootstrap.Modal(document.getElementById('detailsModal')).show();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+</script> 

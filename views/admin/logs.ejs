@@ -1,0 +1,207 @@
+<%- contentFor('body') %>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar (same as dashboard) -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin">
+                            <i class="bi bi-speedometer2"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/users">
+                            <i class="bi bi-people"></i>
+                            User Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/forums">
+                            <i class="bi bi-layout-text-window"></i>
+                            Forum Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/moderation">
+                            <i class="bi bi-shield-check"></i>
+                            Content Moderation
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/admin/settings">
+                            <i class="bi bi-gear"></i>
+                            System Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active text-white" href="/admin/logs">
+                            <i class="bi bi-journal-text"></i>
+                            Logs & Activity
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">System Logs</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportLogs()">
+                        <i class="bi bi-download"></i> Export Logs
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <select class="form-select" id="logType" onchange="filterLogs()">
+                        <option value="all" <%= type === 'all' ? 'selected' : '' %>>All Logs</option>
+                        <option value="error" <%= type === 'error' ? 'selected' : '' %>>Errors</option>
+                        <option value="security" <%= type === 'security' ? 'selected' : '' %>>Security</option>
+                        <option value="audit" <%= type === 'audit' ? 'selected' : '' %>>Audit</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" class="form-control" id="startDate" 
+                           value="<%= startDate || '' %>" onchange="filterLogs()">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" class="form-control" id="endDate" 
+                           value="<%= endDate || '' %>" onchange="filterLogs()">
+                </div>
+            </div>
+
+            <!-- Logs Table -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Type</th>
+                                    <th>Message</th>
+                                    <th>User</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (logs && logs.length > 0) { %>
+                                    <% logs.forEach(log => { %>
+                                        <tr class="<%= log.type === 'error' ? 'table-danger' : '' %>">
+                                            <td><%= new Date(log.created_at).toLocaleString() %></td>
+                                            <td>
+                                                <span class="badge bg-<%= log.type === 'error' ? 'danger' : 
+                                                                         log.type === 'security' ? 'warning' : 
+                                                                         log.type === 'audit' ? 'info' : 'secondary' %>">
+                                                    <%= log.type %>
+                                                </span>
+                                            </td>
+                                            <td><%= log.message %></td>
+                                            <td><%= log.username || 'System' %></td>
+                                            <td>
+                                                <% if (log.metadata) { %>
+                                                    <button class="btn btn-sm btn-outline-secondary" 
+                                                            onclick="showDetails('<%= JSON.stringify(log.metadata) %>')">
+                                                        View Details
+                                                    </button>
+                                                <% } %>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="5" class="text-center">No logs found</td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <% if (totalPages > 1) { %>
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                            <a class="page-link" href="/admin/logs?page=<%= currentPage - 1 %>&type=<%= type %>">Previous</a>
+                        </li>
+                        <% for(let i = 1; i <= totalPages; i++) { %>
+                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                <a class="page-link" href="/admin/logs?page=<%= i %>&type=<%= type %>"><%= i %></a>
+                            </li>
+                        <% } %>
+                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                            <a class="page-link" href="/admin/logs?page=<%= currentPage + 1 %>&type=<%= type %>">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            <% } %>
+        </main>
+    </div>
+</div>
+
+<!-- Log Details Modal -->
+<div class="modal fade" id="logDetailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Log Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="logDetails" class="bg-light p-3 rounded"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- contentFor('scripts') %>
+<script>
+function filterLogs() {
+    const type = document.getElementById('logType').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    let url = `/admin/logs?type=${type}`;
+    if (startDate) url += `&startDate=${startDate}`;
+    if (endDate) url += `&endDate=${endDate}`;
+    
+    window.location.href = url;
+}
+
+function showDetails(metadata) {
+    const details = JSON.parse(metadata);
+    document.getElementById('logDetails').textContent = JSON.stringify(details, null, 2);
+    new bootstrap.Modal(document.getElementById('logDetailsModal')).show();
+}
+
+async function exportLogs() {
+    const type = document.getElementById('logType').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    try {
+        const response = await fetch(`/admin/logs/export?type=${type}&startDate=${startDate}&endDate=${endDate}`);
+        if (!response.ok) throw new Error('Failed to export logs');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `system_logs_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        alert(error.message);
+    }
+}
+</script> 

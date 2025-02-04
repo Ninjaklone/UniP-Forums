@@ -40,6 +40,47 @@ class User {
         const result = await db.query(query);
         return parseInt(result.rows[0].count);
     }
+
+    // Add to models/user.js
+static async getRecent({ limit }) {
+    const query = `
+        SELECT user_id, username, email, created_at, is_admin, is_active
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT $1
+    `;
+    const result = await db.query(query, [limit]);
+    return result.rows;
+}
+
+static async getAll({ page, limit, search, filter }) {
+    const offset = (page - 1) * limit;
+    let query = `
+        SELECT user_id, username, email, created_at, last_login, is_admin, is_active
+        FROM users
+        WHERE 1=1
+    `;
+    const params = [];
+
+    if (search) {
+        params.push(`%${search}%`);
+        query += ` AND (username ILIKE $${params.length} OR email ILIKE $${params.length})`;
+    }
+
+    if (filter === 'active') {
+        query += ' AND is_active = true';
+    } else if (filter === 'inactive') {
+        query += ' AND is_active = false';
+    } else if (filter === 'admin') {
+        query += ' AND is_admin = true';
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
+
+    const result = await db.query(query, params);
+    return result.rows;
+}
 }
 
 module.exports = User; 

@@ -156,6 +156,12 @@ class Thread {
         const result = await db.query(query);
         return parseInt(result.rows[0].count);
     }
+
+    static async getCountByForum(forumId) {
+        const query = 'SELECT COUNT(*) as count FROM threads WHERE forum_id = $1';
+        const result = await db.query(query, [forumId]);
+        return parseInt(result.rows[0].count);
+    }
 }
 
 module.exports = Thread; 
