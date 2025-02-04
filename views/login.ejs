@@ -51,26 +51,3 @@
     </div>
 </div>
 
-<% if (locals.extraScripts) { %>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
-    form.addEventListener('submit', function(e) {
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        
-        if (!email || !password) {
-            e.preventDefault();
-            alert('Please fill in all required fields.');
-            return;
-        }
-        
-        if (!email.includes('@')) {
-            e.preventDefault();
-            alert('Please enter a valid email address.');
-            return;
-        }
-    });
-});
-</script>
-<% } %> 

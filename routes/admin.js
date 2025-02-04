@@ -17,7 +17,7 @@ router.get('/', async (req, res, next) => {
             userCount: await User.getTotalCount(),
             threadCount: await Thread.getTotalCount(),
             postCount: await Post.getTotalCount(),
-            // Add more statistics as needed
+            // Might add more statistics as needed
         };
 
         // Get recent activity
@@ -107,11 +107,11 @@ router.get('/moderation', async (req, res, next) => {
 router.get('/settings', async (req, res, next) => {
     try {
         const settings = {
-            // Add your system settings here
+            //system settings here
             forumName: process.env.FORUM_NAME || 'University Forums',
             allowRegistration: process.env.ALLOW_REGISTRATION === 'true',
             maintenanceMode: process.env.MAINTENANCE_MODE === 'true',
-            // Add more settings as needed
+            //settings here
         };
 
         res.render('admin/settings', {

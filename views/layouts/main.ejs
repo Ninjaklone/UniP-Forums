@@ -22,6 +22,9 @@
     <% if (locals.user) { %>
         <script src="/js/thread.js"></script>
         <script src="/js/forum.js"></script>
+        <% if (locals.user.is_admin) { %>
+            <script src="/js/adminjs/users.js"></script>
+        <% } %>
     <% } %>
 </body>
 </html> 
