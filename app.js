@@ -7,6 +7,7 @@ const path = require('path');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const expressLayouts = require('express-ejs-layouts');
+const flash = require('connect-flash');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -63,9 +64,14 @@ app.use(session({
     }
 }));
 
-// Make user data available to all views
+// Flash messages middleware
+app.use(flash());
+
+// Make user data and flash messages available to all views
 app.use((req, res, next) => {
-    res.locals.user = req.session.user;
+    res.locals.user = req.session.user || null;
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
     next();
 });
 
@@ -76,6 +82,8 @@ app.use('/forums', require('./routes/forums'));
 app.use('/threads', require('./routes/threads'));
 app.use('/posts', require('./routes/posts'));
 app.use('/admin', require('./routes/admin'));
+app.use('/profile', require('./routes/profile'));
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

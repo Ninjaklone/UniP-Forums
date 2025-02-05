@@ -81,6 +81,44 @@ static async getAll({ page, limit, search, filter }) {
     const result = await db.query(query, params);
     return result.rows;
 }
+
+static async update(userId, { username, email, password }) {
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (username) {
+        updates.push(`username = $${paramCount}`);
+        values.push(username);
+        paramCount++;
+    }
+
+    if (email) {
+        updates.push(`email = $${paramCount}`);
+        values.push(email);
+        paramCount++;
+    }
+
+    if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        updates.push(`password_hash = $${paramCount}`);
+        values.push(hashedPassword);
+        paramCount++;
+    }
+
+    if (updates.length === 0) return null;
+
+    values.push(userId);
+    const query = `
+        UPDATE users
+        SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = $${paramCount}
+        RETURNING user_id, username, email, created_at, is_admin
+    `;
+
+    const result = await db.query(query, values);
+    return result.rows[0];
+}
 }
 
 module.exports = User; 

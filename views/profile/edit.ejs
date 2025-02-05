@@ -1,0 +1,123 @@
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title h4 mb-0">Edit Profile</h1>
+                </div>
+                <div class="card-body">
+                    <% if (locals.error) { %>
+                        <div class="alert alert-danger" role="alert">
+                            <%= error %>
+                        </div>
+                    <% } %>
+
+                    <form action="/profile/edit" method="POST" class="needs-validation" novalidate>
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                   value="<%= user.username %>" required
+                                   minlength="3" maxlength="50"
+                                   pattern="[a-zA-Z0-9_-]+"
+                                   title="Username can only contain letters, numbers, underscores, and hyphens">
+                            <div class="invalid-feedback">
+                                Please enter a valid username (3-50 characters, letters, numbers, underscores, and hyphens only).
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   value="<%= user.email %>" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid email address.
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Change Password (Optional) -->
+                        <h5 class="mb-3">Change Password (Optional)</h5>
+
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="currentPassword" name="currentPassword">
+                            <div class="form-text">Required only if changing password</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword"
+                                   minlength="8"
+                                   pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                                   title="Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character">
+                            <div class="invalid-feedback">
+                                Password must be at least 8 characters long and contain at least one uppercase letter,
+                                one lowercase letter, one number, and one special character.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword">
+                            <div class="invalid-feedback">
+                                Passwords do not match.
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/profile" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- contentFor('scripts') %>
+<script>
+// Form validation
+(function () {
+    'use strict'
+
+    const forms = document.querySelectorAll('.needs-validation');
+    const newPassword = document.getElementById('newPassword');
+    const confirmNewPassword = document.getElementById('confirmNewPassword');
+    const currentPassword = document.getElementById('currentPassword');
+
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            // Check if passwords match when changing password
+            if (newPassword.value || confirmNewPassword.value) {
+                if (newPassword.value !== confirmNewPassword.value) {
+                    confirmNewPassword.setCustomValidity('Passwords do not match');
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    confirmNewPassword.setCustomValidity('');
+                }
+
+                // Require current password when changing password
+                if (!currentPassword.value) {
+                    currentPassword.setCustomValidity('Current password is required to change password');
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    currentPassword.setCustomValidity('');
+                }
+            }
+
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script> 

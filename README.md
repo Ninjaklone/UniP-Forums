@@ -101,7 +101,6 @@ UniP-Forums/
 - [ ] Create admin activity logs
 
 ### UI/UX Improvements
-- [ ] Add dark mode support
 - [ ] Implement responsive design improvements
 - [ ] Add loading states for actions
 - [ ] Improve error messages and notifications
@@ -128,6 +127,8 @@ UniP-Forums/
 - [ ] Create test documentation
 - [ ] Set up CI/CD pipeline
 
+### In Progress
+- [ ] Addition of Profile. Its view, route, controller and other features.
 ## Contributing
 
 Please read our contributing guidelines before submitting pull requests.
