@@ -81,6 +81,7 @@ UniP-Forums/
 
 ### Forum Features
 - [ ] Add rich text editor for posts
+- [ ] Add Image Support
 - [ ] Implement thread categorization with tags
 - [ ] Add thread subscription feature
 - [ ] Implement thread search functionality
@@ -105,6 +106,7 @@ UniP-Forums/
 - [ ] Add loading states for actions
 - [ ] Improve error messages and notifications
 - [ ] Add keyboard shortcuts for common actions
+- [ ] Implement a background Image
 
 ### Security
 - [ ] Implement rate limiting

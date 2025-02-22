@@ -2,6 +2,12 @@ class ThreadManager {
     constructor() {
         console.log('ThreadManager initialized');
         this.bindEvents();
+        this.initializeEditors();
+    }
+
+    initializeEditors() {
+        // Initialize TinyMCE for reply form
+        initTinyMCE('.tinymce');
     }
 
     bindEvents() {
@@ -48,12 +54,12 @@ class ThreadManager {
     handleEditClick(e) {
         const postId = e.target.dataset.postId;
         const postDiv = document.querySelector(`#post-${postId} .post-content`);
-        const content = postDiv.textContent.trim();
+        const content = postDiv.innerHTML.trim();
         
         postDiv.innerHTML = `
             <form class="edit-post-form" data-post-id="${postId}">
-                <textarea class="form-control mb-2" rows="4" required>${content}</textarea>
-                <div class="text-end">
+                <textarea class="form-control tinymce-edit" id="tinymce-${postId}" rows="6" required>${content}</textarea>
+                <div class="text-end mt-3">
                     <button type="button" class="btn btn-sm btn-secondary cancel-edit-btn" 
                             data-post-id="${postId}" 
                             data-content="${encodeURIComponent(content)}">
@@ -65,20 +71,30 @@ class ThreadManager {
                 </div>
             </form>
         `;
+
+        // Initialize TinyMCE for the edit form
+        initTinyMCE(`#tinymce-${postId}`);
     }
 
     handleCancelEdit(e) {
         const postId = e.target.dataset.postId;
         const content = decodeURIComponent(e.target.dataset.content);
         const postDiv = document.querySelector(`#post-${postId} .post-content`);
-        postDiv.textContent = content;
+        // Remove TinyMCE instance if it exists
+        const editor = tinymce.get(`tinymce-${postId}`);
+        if (editor) {
+            editor.remove();
+        }
+        postDiv.innerHTML = content;
     }
 
     async handleSaveEdit(e) {
         const form = e.target;
         const postId = form.dataset.postId;
         const submitButton = form.querySelector('button[type="submit"]');
-        const content = form.querySelector('textarea').value;
+        // Get content from TinyMCE
+        const editor = tinymce.get(`tinymce-${postId}`);
+        const content = editor ? editor.getContent() : form.querySelector('textarea').value;
 
         submitButton.disabled = true;
         submitButton.textContent = 'Saving...';
@@ -95,6 +111,10 @@ class ThreadManager {
                 throw new Error(data.error || 'Failed to save changes');
             }
 
+            // Remove TinyMCE instance before reloading
+            if (editor) {
+                editor.remove();
+            }
             location.reload();
         } catch (error) {
             alert(error.message);
@@ -186,7 +206,7 @@ class ThreadManager {
     }
 }
 
-// Initialize the thread manager when the DOM is loaded
+// Initialize when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing ThreadManager');
     new ThreadManager();

@@ -21,8 +21,7 @@
 
                 <div class="mb-3">
                     <label for="content" class="form-label">Initial Post</label>
-                    <textarea class="form-control" id="content" name="content" rows="6" required
-                             placeholder="Write your post content here..."></textarea>
+                    <textarea class="form-control tinymce" id="content" name="content" rows="10" required></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -50,4 +49,6 @@
             </form>
         </div>
     </div>
-</div> 
+</div>
+
+<%- contentFor('scripts') %>
