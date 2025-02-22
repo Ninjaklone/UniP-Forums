@@ -83,7 +83,7 @@ app.use('/threads', require('./routes/threads'));
 app.use('/posts', require('./routes/posts'));
 app.use('/admin', require('./routes/admin'));
 app.use('/profile', require('./routes/profile'));
-
+app.use('/uploads', require('./routes/uploads'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

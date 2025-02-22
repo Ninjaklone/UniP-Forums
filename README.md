@@ -80,8 +80,6 @@ UniP-Forums/
 - [ ] Implement user activity tracking
 
 ### Forum Features
-- [ ] Add rich text editor for posts
-- [ ] Add Image Support
 - [ ] Implement thread categorization with tags
 - [ ] Add thread subscription feature
 - [ ] Implement thread search functionality
